@@ -1,835 +1,612 @@
-# Saanjh Ki Roti API
+# SAANJH KI ROTI API
 
-## Project Requirements and Implementation Plan
+# 1. PROJECT REQUIREMENTS
 
-### Project Overview
+## 1.1 Objective
 
-Saanjh Ki Roti is a home-cooked tiffin subscription service operating in Vijaynagar, Kota. The business currently manages customer subscriptions, meal preparation, deliveries, billing, complaints, and reporting manually through notebooks and WhatsApp.
+Build a FastAPI backend system for managing:
 
-The objective of this project is to build a FastAPI-based backend system that digitizes the entire business workflow, reduces food wastage, improves delivery tracking, automates billing, and provides operational visibility through dashboards and reports.
+* Customers
+* Subscription Plans
+* Deliveries
+* Billing
+* Complaints
+* Reports
+* Customer Self-Service
 
----
-
-# 1. Business Goals
-
-The system must help Saanjh:
-
-1. Know exactly how many tiffins to prepare every day.
-2. Track customer subscriptions and pauses.
-3. Manage deliveries across routes.
-4. Handle billing and payments.
-5. Record and resolve customer complaints.
-6. Store customer identity documents.
-7. Generate monthly business reports.
-8. Allow customers to manage pauses themselves.
-9. Reduce manual notebook work.
+The system should reduce manual bookkeeping and automate daily operations.
 
 ---
 
-# 2. User Roles
+## 1.2 User Roles
 
-## 2.1 Admin (Saanjh)
-
-Full system access.
+### Admin
 
 Permissions:
 
 * Manage customers
-* Manage subscriptions
 * Manage plans
+* Manage subscriptions
+* Manage payments
 * Manage deliveries
 * Manage complaints
-* Manage payments
 * Generate reports
-* Upload customer documents
-* Reassign routes
 
----
-
-## 2.2 Delivery Boy
-
-Limited access.
+### Delivery Boy
 
 Permissions:
 
-* View assigned route only
 * View assigned deliveries
 * Update delivery status
-* Retry failed deliveries
-* View own performance
 
-Restrictions:
-
-* Cannot access other routes
-* Cannot access customer payments
-* Cannot access complaints
-
----
-
-## 2.3 Customer
+### Customer
 
 Permissions:
 
 * View subscription
-* View billing history
-* Request plan pause
+* Pause plan
+* View bills
 * View delivery status
-* View complaint history
-
-Restrictions:
-
-* Cannot access other customers' data
 
 ---
 
-# 3. Functional Requirements
+## 1.3 Functional Requirements
+
+### Customer Management
+
+* Create customer
+* Update customer
+* Upload identity proof
+* Assign route
+
+### Subscription Management
+
+* Create subscription
+* Change plan
+* Pause plan
+* Renew subscription
+
+### Delivery Management
+
+* Create daily deliveries
+* Track delivery status
+* Retry failed deliveries
+
+### Billing Management
+
+* Generate invoices
+* Record payments
+* Apply discounts
+* Auto-pause unpaid accounts
+
+### Complaint Management
+
+* Register complaint
+* Assign severity
+* Track SLA
+* Record compensation
+
+### Reporting
+
+* Daily dashboard
+* Monthly PDF reports
 
 ---
 
-## Module 1: Customer Management
-
-### Features
-
-Create Customer
-
-Store:
-
-* Full Name
-* Mobile Number
-* Alternate Number
-* Address
-* Route
-* Diet Preference
-* Aadhaar/License Image
-* Referral Code
-* Referred By
-
-### Validations
-
-* Mobile number must be unique.
-* Duplicate customer creation should be prevented.
-* Existing customer may be merged by admin.
-
-### Customer Status
-
-* Active
-* Paused
-* Auto-Paused
-* Cancelled
-
----
-
-## Module 2: Plan Management
-
-### Supported Plans
-
-#### Monthly Veg
-
-* ₹2800
-* Lunch Only
-
-#### Monthly Premium
-
-* ₹3500
-* Lunch + Dinner
-
-#### Weekly Saver
-
-* ₹750
-* Lunch + Dinner
-
-#### Diabetic Special
-
-* ₹3800
-* Lunch + Dinner
-
-### Plan Configuration
-
-Each plan stores:
-
-* Name
-* Price
-* Billing Cycle
-* Portion Size
-* Daily Food Cost
-* Supported Diet Types
-* Active Status
-
----
-
-## Module 3: Subscription Management
-
-### Features
-
-Customer can subscribe to:
-
-* One active plan at a time
-
-Track:
-
-* Start Date
-* End Date
-* Renewal Date
-* Current Price Snapshot
-* Billing Cycle
-
-### Important Rule
-
-If plan pricing changes:
-
-Existing subscriptions continue at old price until next renewal.
-
-Reason:
-
-Prevents billing disputes.
-
----
-
-## Module 4: Pause Management
-
-### Rules
-
-Customer may pause:
-
-* Maximum 7 days per billing cycle
-
-Unused paused days:
-
-* Carry forward only within limit
-
-Beyond 7 days:
-
-* Expire
-
-### Pause Workflow
-
-Customer requests pause:
-
-Pending → Approved → Active
-
-Store:
-
-* Pause Start Date
-* Pause End Date
-* Reason
-* Approved By
-
----
-
-## Module 5: Daily Meal Planning
-
-Purpose:
-
-Generate cooking requirements every morning.
-
-Categories:
-
-* Veg
-* Non-Veg
-* Jain
-* Diabetic
-
-System calculates:
-
-Total Active Deliveries
-− Paused Customers
-− Failed Renewals
-− Auto-Paused Accounts
-
-Output:
-
-Daily Preparation Sheet
-
-Example:
-
-Veg: 38
-Jain: 10
-Diabetic: 8
-Non-Veg: 11
-
-Total: 67
-
----
-
-## Module 6: Add-On Orders
-
-Supported Add-Ons:
-
-* Extra Paneer
-* Raita
-* Salad
-* Friday Kheer
-
-Rules:
-
-* Must be ordered before 9:00 AM.
-* Add-on linked to specific delivery date.
-
-Status:
-
-* Pending
-* Accepted
-* Rejected
-* Prepared
-
----
-
-## Module 7: Route Management
-
-Routes:
-
-### East Vijaynagar
-
-Approx 22 deliveries
-
-### West Vijaynagar
-
-Approx 18 deliveries
-
-### Indra Vihar
-
-Approx 25 deliveries
-
-Each customer belongs to one route.
-
-Each route assigned to one delivery boy.
-
----
-
-## Module 8: Delivery Management
-
-### Delivery Status Flow
-
-Prepared
-↓
-Out For Delivery
-↓
-Delivered
-
-Alternative:
-
-Prepared
-↓
-Out For Delivery
-↓
-Failed
-↓
-Retry Scheduled
-↓
-Delivered OR Missed
-
----
-
-### Failed Delivery Reasons
-
-* Customer Not Home
-* Wrong Address
-* Cancelled Midway
-* Other
-
-### Retry Rules
-
-One retry allowed at 8 PM.
-
-Second failure:
-
-Status = Missed
-
-Missed day counts against plan.
-
----
-
-## Module 9: Billing System
-
-### Billing Schedule
-
-Monthly Plans:
-
-1st of every month
-
-Weekly Plans:
-
-Every Monday
-
-### Invoice Data
-
-* Invoice Number
-* Customer
-* Plan
-* Amount
-* Discounts
-* Due Date
-* Final Amount
-
-Statuses:
-
-* Pending
-* Paid
-* Overdue
-
----
-
-## Module 10: Payment Management
-
-Supported Modes
-
-* Cash
-* UPI
-* Khaata
-
-Store:
-
-* Amount
-* Date
-* Payment Mode
-* Reference Number
-
-### Discounts
-
-#### Early Payment
-
-10% Discount
-
-Condition:
-
-Payment before due date.
-
----
-
-#### Referral Discount
-
-5% Discount
-
-Condition:
-
-Referred customer completes first paid month.
-
-Applied only once.
-
----
-
-### Auto Pause Rule
-
-If invoice remains unpaid:
-
-More than 10 days after due date
-
-System automatically pauses subscription.
-
----
-
-## Module 11: Complaint Management
-
-Complaint Types
-
-* Late Delivery
-* Cold Food
-* Wrong Order
-* Missing Item
-* Taste Complaint
-* Other
-
----
-
-### Severity Levels
-
-#### Low
-
-Resolution within 48 hours
-
-#### Medium
-
-Resolution within 24 hours
-
-#### High
-
-Resolution within 6 hours
-
----
-
-### Complaint Status
-
-Open
-↓
-In Progress
-↓
-Resolved
-↓
-Closed
-
-Store:
-
-* Resolution Notes
-* Compensation Given
-* Resolution Time
-
----
-
-## Module 12: Dashboard
-
-Single-screen overview.
-
-Display:
-
-### Today's Numbers
-
-* Total Deliveries
-* Delivered
-* Pending
-* Failed
-* Retried
-
-### By Plan
-
-* Monthly Veg
-* Premium
-* Weekly Saver
-* Diabetic
-
-### By Route
-
-* East Vijaynagar
-* West Vijaynagar
-* Indra Vihar
-
-### Revenue
-
-* Today's Revenue
-* Outstanding Amount
-
----
-
-## Module 13: Document Management
-
-Store:
-
-* Aadhaar Images
-* Driving License Images
-
-Linked directly to customer profile.
-
-Requirements:
-
-* Secure storage
-* File validation
-* Image preview
-
----
-
-## Module 14: Monthly Reports
-
-Generated automatically.
-
-PDF Report contains:
-
-### Business Summary
-
-* Total Revenue
-* Total Deliveries
-* Active Customers
-
-### Operations
-
-* Tiffins Served
-* Paused Customers
-* Failed Deliveries
-
-### Complaints
-
-* Total Complaints
-* Resolved Complaints
-* Average Resolution Time
-
-### Delivery Performance
-
-* Deliveries Per Route
-* Deliveries Per Delivery Boy
-
-Delivered through email.
-
----
-
-# 4. Non-Functional Requirements
-
-## Security
-
-* JWT Authentication
-* Password Hashing
-* Role Based Access Control
-
-## Performance
-
-* API Response < 500ms
-* Support 500+ customers
-
-## Reliability
-
-* Data Backup
-* Audit Logs
-
-## Scalability
-
-* Modular Architecture
-* Easy addition of routes and plans
-
----
-
-# 5. Database Design (High Level)
-
-### Users
-
-* id
-* name
-* phone
-* role
-
-### Customers
-
-* id
-* user_id
-* address
-* route_id
-* diet_type
-
-### Plans
-
-* id
-* name
-* price
-
-### Subscriptions
-
-* id
-* customer_id
-* plan_id
-
-### Pauses
-
-* id
-* subscription_id
-
-### Deliveries
-
-* id
-* customer_id
-* route_id
-* status
-
-### Routes
-
-* id
-* name
-
-### DeliveryBoys
-
-* id
-* user_id
-
-### Payments
-
-* id
-* customer_id
-* amount
-
-### Invoices
-
-* id
-* customer_id
-
-### Complaints
-
-* id
-* customer_id
-
-### AddOns
-
-* id
-* name
-
-### Documents
-
-* id
-* customer_id
-* file_path
-
-### Reports
-
-* id
-* month
-* file_path
-
----
-
-# 6. Things That Can Go Wrong
-
-## Customer Related
-
-* Duplicate phone numbers
-* Multiple active subscriptions
-* Invalid document uploads
-
-## Plan Related
-
-* Plan price changes during billing cycle
-* Customer switches plan mid-cycle
-
-## Delivery Related
-
-* Delivery boy resigns
-* Route reassignment required
-* Delivery marked delivered accidentally
-
-## Billing Related
-
-* Partial payments
-* Khaata settlement mismatch
-* Failed UPI payment
-
-## Pause Related
-
-* Overlapping pause requests
-* Pause exceeding allowed limit
-
-## Complaint Related
-
-* SLA violation
-* Complaint reopened after resolution
-
-## Reporting Related
-
-* Missing data in monthly reports
-* Report generation failure
-
----
-
-# 7. Technical Stack
-
-Backend:
-
-* FastAPI
-
-Database:
-
-* PostgreSQL
-
-ORM:
-
-* SQLAlchemy
-
-Authentication:
-
-* JWT
-
-Migrations:
-
-* Alembic
-
-File Storage:
-
-* Local Storage / S3 Compatible Storage
-
-Background Jobs:
-
-* APScheduler / Celery
-
-PDF Reports:
-
-* ReportLab
-
-Email Service:
-
-* SMTP
-
-Testing:
-
-* Pytest
-
-Documentation:
-
-* Swagger/OpenAPI
-
----
-
-# 8. Development Phases
+# 2. IMPLEMENTATION PLAN
 
 ## Phase 1
 
-Foundation
+Project Setup
 
-* Project Setup
-* Database Setup
-* Authentication
-* User Roles
+* FastAPI setup
+* PostgreSQL setup
+* SQLAlchemy
+* Alembic
+* JWT Authentication
 
 ## Phase 2
 
-Customer & Plan Management
+Customer Module
 
-* Customers
-* Plans
-* Subscriptions
-* Documents
+* Customer CRUD
+* Document Upload
 
 ## Phase 3
 
-Operations
+Plan & Subscription Module
 
-* Pause System
-* Add-ons
-* Meal Planning
-* Routes
+* Plans
+* Subscriptions
+* Pause Management
 
 ## Phase 4
 
-Delivery System
+Delivery Module
 
-* Deliveries
-* Retry Logic
 * Route Assignment
+* Delivery Tracking
 
 ## Phase 5
 
-Billing & Payments
+Billing Module
 
 * Invoices
 * Payments
 * Discounts
-* Auto Pause
 
 ## Phase 6
 
-Complaints
+Complaint Module
 
 * Complaint Tracking
-* SLA Monitoring
 * Compensation
 
 ## Phase 7
 
-Reports & Dashboard
+Reports Module
 
-* Analytics APIs
-* Monthly PDF Reports
-* Email Reports
-
-## Phase 8
-
-Customer Self-Service
-
-* Pause Requests
-* Subscription View
-* Billing History
+* Dashboard
+* PDF Reports
 
 ---
 
-# Success Criteria
+# 3. PROJECT FOLDER STRUCTURE
 
-The project will be considered successful when:
+app/
 
-1. Daily cooking quantities are automatically generated.
-2. Deliveries can be tracked in real time.
-3. Billing and payment reminders are automated.
-4. Complaints are monitored with SLAs.
-5. Monthly reports are generated automatically.
-6. Customers can pause plans without WhatsApp.
-7. Manual notebook operations are eliminated.
+├── main.py
+
+├── core/
+
+│ ├── config.py
+
+│ ├── security.py
+
+│ └── database.py
+
+├── models/
+
+├── schemas/
+
+├── services/
+
+├── repositories/
+
+├── api/
+
+├── utils/
+
+├── reports/
+
+├── uploads/
+
+└── tests/
+
+---
+
+# 4. FILE DETAILS
+
+## main.py
+
+Purpose:
+
+Application entry point.
+
+Functions:
+
+create_app() -> FastAPI
+
+Output:
+
+FastAPI instance
+
+---
+
+## core/config.py
+
+Purpose:
+
+Store application settings.
+
+Class:
+
+Settings
+
+Attributes:
+
+DATABASE_URL: str
+
+JWT_SECRET: str
+
+SMTP_EMAIL: str
+
+SMTP_PASSWORD: str
+
+---
+
+## core/database.py
+
+Purpose:
+
+Database connection setup.
+
+Variables:
+
+engine
+
+SessionLocal
+
+Base
+
+Functions:
+
+get_db()
+
+Return:
+
+Generator
+
+---
+
+## core/security.py
+
+Purpose:
+
+Authentication utilities.
+
+Functions:
+
+hash_password(password: str) -> str
+
+verify_password(password: str, hashed: str) -> bool
+
+create_access_token(user_id: int) -> str
+
+decode_token(token: str) -> dict
+
+---
+
+# 5. DATABASE MODELS
+
+## Customer
+
+File:
+
+models/customer.py
+
+Class:
+
+Customer
+
+Fields:
+
+id: int
+
+name: str
+
+phone: str
+
+alternate_phone: str
+
+address: str
+
+route_id: int
+
+diet_type: str
+
+status: str
+
+created_at: datetime
+
+---
+
+## Plan
+
+File:
+
+models/plan.py
+
+Class:
+
+Plan
+
+Fields:
+
+id: int
+
+name: str
+
+price: float
+
+billing_cycle: str
+
+portion_size: str
+
+food_cost_per_day: float
+
+active: bool
+
+---
+
+## Subscription
+
+File:
+
+models/subscription.py
+
+Class:
+
+Subscription
+
+Fields:
+
+id: int
+
+customer_id: int
+
+plan_id: int
+
+start_date: date
+
+end_date: date
+
+paused_days: int
+
+status: str
+
+---
+
+## Delivery
+
+File:
+
+models/delivery.py
+
+Class:
+
+Delivery
+
+Fields:
+
+id: int
+
+customer_id: int
+
+route_id: int
+
+status: str
+
+delivery_date: date
+
+retry_count: int
+
+---
+
+## Payment
+
+File:
+
+models/payment.py
+
+Class:
+
+Payment
+
+Fields:
+
+id: int
+
+customer_id: int
+
+amount: float
+
+payment_mode: str
+
+reference_number: str
+
+paid_at: datetime
+
+---
+
+## Complaint
+
+File:
+
+models/complaint.py
+
+Class:
+
+Complaint
+
+Fields:
+
+id: int
+
+customer_id: int
+
+title: str
+
+description: str
+
+severity: str
+
+status: str
+
+resolution_note: str
+
+---
+
+# 6. SCHEMAS
+
+Purpose:
+
+Request/Response Validation
+
+Example:
+
+schemas/customer.py
+
+Classes:
+
+CustomerCreate
+
+CustomerUpdate
+
+CustomerResponse
+
+Fields:
+
+name: str
+
+phone: str
+
+address: str
+
+route_id: int
+
+diet_type: str
+
+---
+
+# 7. SERVICES
+
+Purpose:
+
+Business Logic
+
+## customer_service.py
+
+Functions:
+
+create_customer(data: CustomerCreate) -> Customer
+
+update_customer(customer_id: int, data: CustomerUpdate) -> Customer
+
+delete_customer(customer_id: int) -> bool
+
+get_customer(customer_id: int) -> Customer
+
+---
+
+## subscription_service.py
+
+Functions:
+
+create_subscription(customer_id: int, plan_id: int) -> Subscription
+
+pause_subscription(subscription_id: int, days: int) -> Subscription
+
+renew_subscription(subscription_id: int) -> Subscription
+
+---
+
+## delivery_service.py
+
+Functions:
+
+generate_daily_deliveries(date: date) -> list[Delivery]
+
+mark_delivered(delivery_id: int) -> Delivery
+
+mark_failed(delivery_id: int, reason: str) -> Delivery
+
+retry_delivery(delivery_id: int) -> Delivery
+
+---
+
+## payment_service.py
+
+Functions:
+
+generate_invoice(customer_id: int) -> Invoice
+
+record_payment(payment_data: dict) -> Payment
+
+apply_discount(invoice_id: int) -> float
+
+---
+
+## complaint_service.py
+
+Functions:
+
+create_complaint(data: ComplaintCreate) -> Complaint
+
+resolve_complaint(id: int, note: str) -> Complaint
+
+calculate_sla(id: int) -> int
+
+---
+
+# 8. API ENDPOINTS
+
+Customer
+
+POST /customers
+
+GET /customers
+
+GET /customers/{id}
+
+PUT /customers/{id}
+
+DELETE /customers/{id}
+
+Subscription
+
+POST /subscriptions
+
+POST /subscriptions/pause
+
+GET /subscriptions/{id}
+
+Delivery
+
+GET /deliveries/today
+
+PATCH /deliveries/{id}/status
+
+Payments
+
+POST /payments
+
+GET /payments/{id}
+
+Complaints
+
+POST /complaints
+
+PATCH /complaints/{id}/resolve
+
+Reports
+
+GET /reports/dashboard
+
+GET /reports/monthly
+
+---
+
+# 9. EDGE CASES
+
+* Duplicate phone number
+* Plan changed during active billing cycle
+* Delivery boy resignation
+* Failed payment
+* Multiple active subscriptions
+* Pause limit exceeded
+* Invalid document upload
+* Complaint reopened
+* Retry delivery already completed
+* Customer deleted with active subscription
+
+---
+
+# 10. SUCCESS CRITERIA
+
+* Daily cooking quantities generated automatically
+* Deliveries tracked digitally
+* Billing automated
+* Complaints tracked with SLA
+* Reports generated automatically
+* Customers can pause subscriptions online
