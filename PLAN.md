@@ -2,51 +2,72 @@
 
 # 1. PROJECT REQUIREMENTS
 
-## 1.1 Objective
+## 1.1 Project Objective
 
-Build a FastAPI backend system for managing:
+Saanjh Ki Roti is a home-cooked tiffin subscription service operating in Vijaynagar, Kota.
 
-* Customers
-* Subscription Plans
-* Deliveries
-* Billing
-* Complaints
-* Reports
+The objective of this project is to build a FastAPI-based backend system that digitizes:
+
+* Customer Management
+* Subscription Management
+* Daily Meal Planning
+* Add-On Orders
+* Delivery Tracking
+* Billing & Payments
+* Complaint Management
+* Monthly Reporting
 * Customer Self-Service
 
-The system should reduce manual bookkeeping and automate daily operations.
+The system should reduce manual notebook work, minimize food wastage, automate billing, and provide operational visibility.
 
 ---
 
 ## 1.2 User Roles
 
-### Admin
+### Admin (Saanjh)
 
 Permissions:
 
 * Manage customers
 * Manage plans
 * Manage subscriptions
-* Manage payments
+* Approve pauses
 * Manage deliveries
 * Manage complaints
+* Manage payments
 * Generate reports
+* Upload customer documents
+* Reassign routes
+
+---
 
 ### Delivery Boy
 
 Permissions:
 
+* View assigned route
 * View assigned deliveries
 * Update delivery status
+* Retry failed delivery
+
+Restrictions:
+
+* Cannot access payments
+* Cannot access complaints
+* Cannot view other routes
+
+---
 
 ### Customer
 
 Permissions:
 
 * View subscription
-* Pause plan
-* View bills
+* View invoices
 * View delivery status
+* Request pause
+* Place add-on orders
+* View complaint history
 
 ---
 
@@ -56,102 +77,198 @@ Permissions:
 
 * Create customer
 * Update customer
-* Upload identity proof
+* Upload Aadhaar/License
 * Assign route
+* Maintain referral information
+
+### Plan Management
+
+Supported Plans:
+
+1. Monthly Veg
+2. Monthly Premium
+3. Weekly Saver
+4. Diabetic Special
 
 ### Subscription Management
 
 * Create subscription
-* Change plan
-* Pause plan
 * Renew subscription
+* Change plan
+* Pause subscription
+
+### Add-On Order Management
+
+Supported Add-ons:
+
+* Extra Paneer
+* Raita
+* Salad
+* Friday Kheer
+
+Rules:
+
+* Orders accepted before 09:00 AM
+* Orders after cutoff rejected automatically
+
+### Daily Meal Planning
+
+Generate daily cooking counts:
+
+* Veg
+* Non-Veg
+* Jain
+* Diabetic
 
 ### Delivery Management
 
-* Create daily deliveries
-* Track delivery status
-* Retry failed deliveries
+Statuses:
+
+* Prepared
+* Out For Delivery
+* Delivered
+* Failed
+* Retry Scheduled
+* Missed
 
 ### Billing Management
 
 * Generate invoices
 * Record payments
 * Apply discounts
-* Auto-pause unpaid accounts
+* Manage khaata
 
 ### Complaint Management
 
-* Register complaint
-* Assign severity
-* Track SLA
-* Record compensation
+Complaint Types:
+
+* Late Delivery
+* Cold Food
+* Wrong Order
+* Missing Item
+* Taste Complaint
+* Other
 
 ### Reporting
 
-* Daily dashboard
-* Monthly PDF reports
+Generate:
+
+* Dashboard Summary
+* Monthly PDF Reports
 
 ---
 
 # 2. IMPLEMENTATION PLAN
 
-## Phase 1
+## Technology Stack
 
-Project Setup
+### Backend
 
-* FastAPI setup
-* PostgreSQL setup
-* SQLAlchemy
-* Alembic
-* JWT Authentication
+FastAPI
 
-## Phase 2
+### Database
 
-Customer Module
+SQLite
 
-* Customer CRUD
-* Document Upload
+### Database Access
 
-## Phase 3
+sqlite3
 
-Plan & Subscription Module
+### Authentication
 
-* Plans
-* Subscriptions
-* Pause Management
+JWT
 
-## Phase 4
+### File Storage
 
-Delivery Module
+Local File System
 
-* Route Assignment
-* Delivery Tracking
+### PDF Generation
 
-## Phase 5
+ReportLab
 
-Billing Module
+### Email Service
 
-* Invoices
-* Payments
-* Discounts
-
-## Phase 6
-
-Complaint Module
-
-* Complaint Tracking
-* Compensation
-
-## Phase 7
-
-Reports Module
-
-* Dashboard
-* PDF Reports
+SMTP
 
 ---
 
-# 3. PROJECT FOLDER STRUCTURE
+## Phase 1 – Foundation
+
+Deliverables:
+
+* FastAPI Setup
+* SQLite Setup
+* Authentication
+* Health Endpoint
+* Plan Endpoints
+
+Demo APIs:
+
+GET /health
+
+GET /plans
+
+POST /plans
+
+---
+
+## Phase 2 – Customer Module
+
+* Customer CRUD
+* Document Upload
+* Route Assignment
+
+---
+
+## Phase 3 – Plan & Subscription Module
+
+* Plan Management
+* Subscription Management
+* Pause Management
+
+---
+
+## Phase 4 – Add-On & Meal Planning
+
+* Add-On Orders
+* Daily Meal Count Generation
+
+---
+
+## Phase 5 – Delivery Module
+
+* Delivery Tracking
+* Retry Handling
+* Route Assignment
+
+---
+
+## Phase 6 – Billing Module
+
+* Invoice Generation
+* Payments
+* Discounts
+* Khaata
+
+---
+
+## Phase 7 – Complaint Module
+
+* Complaint Tracking
+* SLA Monitoring
+* Compensation Tracking
+
+---
+
+## Phase 8 – Reports & Dashboard
+
+* Dashboard APIs
+* PDF Reports
+* Email Reports
+
+---
+
+# 3. PROJECT STRUCTURE
 
 app/
 
@@ -159,11 +276,33 @@ app/
 
 ├── core/
 
-│ ├── config.py
+│   ├── config.py
 
-│ ├── security.py
+│   ├── database.py
 
-│ └── database.py
+│   ├── security.py
+
+│   └── constants.py
+
+├── api/
+
+│   ├── customers.py
+
+│   ├── plans.py
+
+│   ├── subscriptions.py
+
+│   ├── pauses.py
+
+│   ├── addon_orders.py
+
+│   ├── deliveries.py
+
+│   ├── payments.py
+
+│   ├── complaints.py
+
+│   └── reports.py
 
 ├── models/
 
@@ -171,21 +310,15 @@ app/
 
 ├── services/
 
-├── repositories/
-
-├── api/
-
-├── utils/
+├── uploads/
 
 ├── reports/
-
-├── uploads/
 
 └── tests/
 
 ---
 
-# 4. FILE DETAILS
+# 4. FILE RESPONSIBILITIES
 
 ## main.py
 
@@ -197,27 +330,23 @@ Functions:
 
 create_app() -> FastAPI
 
-Output:
-
-FastAPI instance
-
 ---
 
 ## core/config.py
 
 Purpose:
 
-Store application settings.
+Application configuration.
 
 Class:
 
 Settings
 
-Attributes:
-
-DATABASE_URL: str
+Fields:
 
 JWT_SECRET: str
+
+DATABASE_PATH: str
 
 SMTP_EMAIL: str
 
@@ -229,23 +358,13 @@ SMTP_PASSWORD: str
 
 Purpose:
 
-Database connection setup.
-
-Variables:
-
-engine
-
-SessionLocal
-
-Base
+Database connection handling.
 
 Functions:
 
-get_db()
+get_connection() -> sqlite3.Connection
 
-Return:
-
-Generator
+close_connection() -> None
 
 ---
 
@@ -259,11 +378,29 @@ Functions:
 
 hash_password(password: str) -> str
 
-verify_password(password: str, hashed: str) -> bool
+verify_password(password: str, hash: str) -> bool
 
-create_access_token(user_id: int) -> str
+create_token(user_id: int) -> str
 
 decode_token(token: str) -> dict
+
+---
+
+## core/constants.py
+
+Purpose:
+
+System constants.
+
+Variables:
+
+LOW_SLA_HOURS = 48
+
+MEDIUM_SLA_HOURS = 24
+
+HIGH_SLA_HOURS = 6
+
+ADDON_CUTOFF_HOUR = 9
 
 ---
 
@@ -274,10 +411,6 @@ decode_token(token: str) -> dict
 File:
 
 models/customer.py
-
-Class:
-
-Customer
 
 Fields:
 
@@ -297,19 +430,15 @@ diet_type: str
 
 status: str
 
+document_path: str
+
+referred_by_customer_id: int | None
+
 created_at: datetime
 
 ---
 
 ## Plan
-
-File:
-
-models/plan.py
-
-Class:
-
-Plan
 
 Fields:
 
@@ -317,27 +446,19 @@ id: int
 
 name: str
 
-price: float
+price_paise: int
 
 billing_cycle: str
 
 portion_size: str
 
-food_cost_per_day: float
+food_cost_per_day_paise: int
 
 active: bool
 
 ---
 
 ## Subscription
-
-File:
-
-models/subscription.py
-
-Class:
-
-Subscription
 
 Fields:
 
@@ -347,25 +468,87 @@ customer_id: int
 
 plan_id: int
 
+price_snapshot_paise: int
+
 start_date: date
 
 end_date: date
 
-paused_days: int
+status: str
+
+created_at: datetime
+
+---
+
+## Pause
+
+Fields:
+
+id: int
+
+subscription_id: int
+
+start_date: date
+
+end_date: date
+
+reason: str
+
+approved_by: int
+
+created_at: datetime
+
+Purpose:
+
+Stores complete pause history.
+
+---
+
+## AddonOrder
+
+Fields:
+
+id: int
+
+customer_id: int
+
+delivery_date: date
+
+addon_type: str
+
+quantity: int
+
+price_paise: int
 
 status: str
+
+created_at: datetime
+
+---
+
+## Route
+
+Fields:
+
+id: int
+
+name: str
+
+delivery_boy_id: int
+
+status: str
+
+Possible Values:
+
+ACTIVE
+
+PENDING_REASSIGNMENT
+
+INACTIVE
 
 ---
 
 ## Delivery
-
-File:
-
-models/delivery.py
-
-Class:
-
-Delivery
 
 Fields:
 
@@ -375,23 +558,19 @@ customer_id: int
 
 route_id: int
 
-status: str
-
 delivery_date: date
 
+status: str
+
+failure_reason: str
+
 retry_count: int
+
+created_at: datetime
 
 ---
 
 ## Payment
-
-File:
-
-models/payment.py
-
-Class:
-
-Payment
 
 Fields:
 
@@ -399,7 +578,7 @@ id: int
 
 customer_id: int
 
-amount: float
+amount_paise: int
 
 payment_mode: str
 
@@ -409,15 +588,27 @@ paid_at: datetime
 
 ---
 
+## Invoice
+
+Fields:
+
+id: int
+
+customer_id: int
+
+amount_paise: int
+
+discount_paise: int
+
+final_amount_paise: int
+
+due_date: date
+
+status: str
+
+---
+
 ## Complaint
-
-File:
-
-models/complaint.py
-
-Class:
-
-Complaint
 
 Fields:
 
@@ -431,117 +622,83 @@ description: str
 
 severity: str
 
+sla_hours: int
+
+due_at: datetime
+
+resolved_at: datetime
+
 status: str
 
 resolution_note: str
 
 ---
 
-# 6. SCHEMAS
+# 6. ENGINEERING DECISIONS
 
-Purpose:
+## Duplicate Phone Number
 
-Request/Response Validation
+Decision:
 
-Example:
+Reject duplicate customer creation.
 
-schemas/customer.py
+Reason:
 
-Classes:
+Phone number uniquely identifies a customer.
 
-CustomerCreate
-
-CustomerUpdate
-
-CustomerResponse
-
-Fields:
-
-name: str
-
-phone: str
-
-address: str
-
-route_id: int
-
-diet_type: str
+Admin may manually merge records.
 
 ---
 
-# 7. SERVICES
+## Plan Price Changes
 
-Purpose:
+Decision:
 
-Business Logic
+Snapshot pricing.
 
-## customer_service.py
+Existing subscribers keep old price until renewal.
 
-Functions:
-
-create_customer(data: CustomerCreate) -> Customer
-
-update_customer(customer_id: int, data: CustomerUpdate) -> Customer
-
-delete_customer(customer_id: int) -> bool
-
-get_customer(customer_id: int) -> Customer
+New subscribers receive updated price.
 
 ---
 
-## subscription_service.py
+## Delivery Boy Resignation
 
-Functions:
+Decision:
 
-create_subscription(customer_id: int, plan_id: int) -> Subscription
+Route status becomes PENDING_REASSIGNMENT.
 
-pause_subscription(subscription_id: int, days: int) -> Subscription
+Admin reassigns route.
 
-renew_subscription(subscription_id: int) -> Subscription
-
----
-
-## delivery_service.py
-
-Functions:
-
-generate_daily_deliveries(date: date) -> list[Delivery]
-
-mark_delivered(delivery_id: int) -> Delivery
-
-mark_failed(delivery_id: int, reason: str) -> Delivery
-
-retry_delivery(delivery_id: int) -> Delivery
+Deliveries remain visible to admin during transition.
 
 ---
 
-## payment_service.py
+# 7. COMPLAINT SLA RULES
 
-Functions:
+LOW = 48 hours
 
-generate_invoice(customer_id: int) -> Invoice
+MEDIUM = 24 hours
 
-record_payment(payment_data: dict) -> Payment
+HIGH = 6 hours
 
-apply_discount(invoice_id: int) -> float
+Overdue Condition:
 
----
+current_time > due_at
 
-## complaint_service.py
+AND
 
-Functions:
+status != RESOLVED
 
-create_complaint(data: ComplaintCreate) -> Complaint
+API Response includes:
 
-resolve_complaint(id: int, note: str) -> Complaint
-
-calculate_sla(id: int) -> int
+is_overdue: bool
 
 ---
 
 # 8. API ENDPOINTS
 
-Customer
+GET /health
 
 POST /customers
 
@@ -551,62 +708,71 @@ GET /customers/{id}
 
 PUT /customers/{id}
 
-DELETE /customers/{id}
-
-Subscription
-
 POST /subscriptions
 
 POST /subscriptions/pause
 
 GET /subscriptions/{id}
 
-Delivery
+POST /addon-orders
 
-GET /deliveries/today
+GET /addon-orders/{customer_id}
 
 PATCH /deliveries/{id}/status
 
-Payments
-
 POST /payments
-
-GET /payments/{id}
-
-Complaints
 
 POST /complaints
 
-PATCH /complaints/{id}/resolve
+GET /complaints/{id}
 
-Reports
-
-GET /reports/dashboard
+GET /dashboard
 
 GET /reports/monthly
 
 ---
 
-# 9. EDGE CASES
+# 9. DEFINITION OF DONE (V1)
 
-* Duplicate phone number
-* Plan changed during active billing cycle
-* Delivery boy resignation
-* Failed payment
-* Multiple active subscriptions
-* Pause limit exceeded
-* Invalid document upload
-* Complaint reopened
-* Retry delivery already completed
-* Customer deleted with active subscription
+1. GET /plans returns active plans.
+
+2. POST /customers creates customer and rejects duplicate phones.
+
+3. POST /subscriptions stores price_snapshot_paise.
+
+4. POST /subscriptions/pause creates pause record.
+
+5. GET pause history returns pause dates.
+
+6. POST /addon-orders rejects requests after 09:00 AM.
+
+7. Daily meal planner returns counts by diet type.
+
+8. Delivery status can be updated.
+
+9. Failed delivery can be retried once.
+
+10. Payment endpoint supports Cash, UPI and Khaata.
+
+11. Complaint endpoint calculates SLA and due_at.
+
+12. Complaint API returns overdue status.
+
+13. Dashboard API returns totals by route, plan and delivery status.
+
+14. Monthly report API generates summary report.
+
+15. All endpoints return valid JSON and HTTP status codes.
 
 ---
 
 # 10. SUCCESS CRITERIA
 
-* Daily cooking quantities generated automatically
-* Deliveries tracked digitally
-* Billing automated
-* Complaints tracked with SLA
-* Reports generated automatically
-* Customers can pause subscriptions online
+* Daily cooking quantities generated automatically.
+* Food wastage reduced by accurate meal planning.
+* Delivery tracking available digitally.
+* Billing automated.
+* Complaints tracked with SLA monitoring.
+* Monthly reports generated automatically.
+* Customers can pause subscriptions online.
+* Manual notebook tracking significantly reduced.
