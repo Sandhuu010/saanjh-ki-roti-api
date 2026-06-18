@@ -296,6 +296,8 @@ app/
 
 │   ├── addon_orders.py
 
+|   ├── meal_planner.py
+
 │   ├── deliveries.py
 
 │   ├── payments.py
@@ -331,6 +333,20 @@ Functions:
 create_app() -> FastAPI
 
 ---
+
+## api/meal_planner.py
+
+Purpose:
+
+Generate daily cooking requirements.
+
+Endpoints:
+
+GET /meal-plan/today
+
+Returns:
+
+Total tiffins grouped by diet type.
 
 ## core/config.py
 
@@ -380,9 +396,12 @@ hash_password(password: str) -> str
 
 verify_password(password: str, hash: str) -> bool
 
-create_token(user_id: int) -> str
+create_token(user_id: int, role: str) -> str
 
 decode_token(token: str) -> dict
+
+JWT Payload:
+{"user_id" : int, "role" : str}
 
 ---
 
@@ -404,7 +423,60 @@ ADDON_CUTOFF_HOUR = 9
 
 ---
 
+## services/meal_planner_service.py
+
+Functions:
+
+generate_daily_meal_plan(target_date: date) -> dict
+
+Output:
+
+{
+  "veg": int,
+  "non_veg": int,
+  "jain": int,
+  "diabetic": int,
+  "total": int
+}
+
 # 5. DATABASE MODELS
+
+## User
+
+File: models/user.py
+
+Purpose: Authentication and authorization.
+
+All system users (Admin, Delivery Boy, Customer) have a corresponding User record.
+
+Fields: id: int
+
+username: str
+
+phone: str
+
+password_hash: str
+
+role: str
+
+is_active: bool
+
+created_at: datetime
+
+Possible Roles:
+
+ADMIN
+
+DELIVERY_BOY
+
+CUSTOMER
+
+Notes:
+
+- JWT tokens reference User.id
+- Password hashes are stored in password_hash
+- Authentication is performed against User records
+
 
 ## Customer
 
@@ -415,6 +487,8 @@ models/customer.py
 Fields:
 
 id: int
+
+user_id : int
 
 name: str
 
@@ -436,7 +510,41 @@ referred_by_customer_id: int | None
 
 created_at: datetime
 
+* Relationship : Customer.user_id -> User.id
+
+* Purpose : stores customer-specific business information
+            Authentication information is stored in user.
+
 ---
+
+## DeliveryBoy
+
+File:
+
+models/delivery_boy.py
+
+Fields:
+
+id: int
+
+user_id: int
+
+assigned_route_id: int
+
+status: str
+
+created_at: datetime
+
+* Relationship:
+
+DeliveryBoy.user_id → User.id
+
+* Purpose:
+
+Stores delivery-specific information.
+
+Authentication information is stored in User.
+
 
 ## Plan
 
@@ -730,6 +838,8 @@ GET /dashboard
 
 GET /reports/monthly
 
+GET /meal-plan/today
+
 ---
 
 # 9. DEFINITION OF DONE (V1)
@@ -746,7 +856,7 @@ GET /reports/monthly
 
 6. POST /addon-orders rejects requests after 09:00 AM.
 
-7. Daily meal planner returns counts by diet type.
+7. GET /meal-plan/today returns exact cooking quantities grouped by diet type and total tiffins.
 
 8. Delivery status can be updated.
 
