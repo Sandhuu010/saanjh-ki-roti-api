@@ -9,13 +9,21 @@ Saanjh Ki Roti is a home-cooked tiffin subscription service operating in Vijayna
 The objective of this project is to build a FastAPI-based backend system that digitizes:
 
 * Customer Management
-* Subscription Management
-* Daily Meal Planning
+
+* Subscription Management (with Pause Management)
+
+* Daily Meal Planning (Lunch + Dinner)
+
 * Add-On Orders
+
 * Delivery Tracking
+
 * Billing & Payments
+
 * Complaint Management
+
 * Monthly Reporting
+
 * Customer Self-Service
 
 The system should reduce manual notebook work, minimize food wastage, automate billing, and provide operational visibility.
@@ -31,7 +39,7 @@ Permissions:
 * Manage customers
 * Manage plans
 * Manage subscriptions
-* Approve pauses
+* Approve pauses (with 7-day cap enforcement)
 * Manage deliveries
 * Manage complaints
 * Manage payments
@@ -73,88 +81,35 @@ Permissions:
 
 ## 1.3 Functional Requirements
 
-### Customer Management
+### Pause Management: 
+Customers can request pauses, capped at 7 days per billing cycle. Admin approves/rejects. Auto-pause if dues >10 days late.
 
-* Create customer
-* Update customer
-* Upload Aadhaar/License
-* Assign route
-* Maintain referral information
+### Customer Management:
+ CRUD, document upload, route assignment, referral tracking
 
-### Plan Management
+### Plan Management: 
+Monthly Veg, Monthly Premium, Weekly Saver, Diabetic Special
 
-Supported Plans:
+### Subscription Management:
+ Create, renew, change, pause, auto-pause overdue
 
-1. Monthly Veg
-2. Monthly Premium
-3. Weekly Saver
-4. Diabetic Special
+### Add-On Orders:
+ Paneer, Raita, Salad, Friday Kheer (cutoff 9 AM)
 
-### Subscription Management
+### Daily Meal Planning:
+ Separate counts for Lunch and Dinner by diet type
 
-* Create subscription
-* Renew subscription
-* Change plan
-* Pause subscription
+### Delivery Management:
+ Status tracking, retry handling, meal type separation
 
-### Add-On Order Management
+### Billing Management:
+ Invoices, payments, discounts, khaata, reminders 5 days before due date
 
-Supported Add-ons:
+### Complaint Management: 
+SLA monitoring, overdue detection, compensation tracking
 
-* Extra Paneer
-* Raita
-* Salad
-* Friday Kheer
-
-Rules:
-
-* Orders accepted before 09:00 AM
-* Orders after cutoff rejected automatically
-
-### Daily Meal Planning
-
-Generate daily cooking counts:
-
-* Veg
-* Non-Veg
-* Jain
-* Diabetic
-
-### Delivery Management
-
-Statuses:
-
-* Prepared
-* Out For Delivery
-* Delivered
-* Failed
-* Retry Scheduled
-* Missed
-
-### Billing Management
-
-* Generate invoices
-* Record payments
-* Apply discounts
-* Manage khaata
-
-### Complaint Management
-
-Complaint Types:
-
-* Late Delivery
-* Cold Food
-* Wrong Order
-* Missing Item
-* Taste Complaint
-* Other
-
-### Reporting
-
-Generate:
-
-* Dashboard Summary
-* Monthly PDF Reports
+### Reporting:
+ Dashboard, monthly PDF reports, email delivery
 
 ---
 
@@ -170,9 +125,17 @@ FastAPI
 
 SQLite
 
-### Database Access
+### Database Access Layer
 
-sqlite3
+SQLModel
+
+* Reason:
+
+- Recommended by the project brief
+- Combines database models and API schemas in typed classes
+- Reduces duplication between models and request/response schemas
+- Provides validation and database mapping together
+- Keeps the project aligned with the FastAPI learning stack
 
 ### Authentication
 
@@ -197,7 +160,7 @@ SMTP
 Deliverables:
 
 * FastAPI Setup
-* SQLite Setup
+* SQLModel setup
 * Authentication
 * Health Endpoint
 * Plan Endpoints
@@ -231,7 +194,7 @@ POST /plans
 ## Phase 4 – Add-On & Meal Planning
 
 * Add-On Orders
-* Daily Meal Count Generation
+* Daily Meal Count Generation (Lunch/Dinner)
 
 ---
 
@@ -271,52 +234,57 @@ POST /plans
 # 3. PROJECT STRUCTURE
 
 app/
-
 ├── main.py
-
 ├── core/
-
 │   ├── config.py
-
 │   ├── database.py
-
 │   ├── security.py
-
 │   └── constants.py
-
 ├── api/
-
 │   ├── customers.py
-
 │   ├── plans.py
-
 │   ├── subscriptions.py
-
 │   ├── pauses.py
-
 │   ├── addon_orders.py
-
-|   ├── meal_planner.py
-
+│   ├── meal_planner.py
 │   ├── deliveries.py
-
 │   ├── payments.py
-
 │   ├── complaints.py
-
 │   └── reports.py
-
+├── routers/
+│   ├── customers_router.py
+│   ├── plans_router.py
+│   ├── subscriptions_router.py
+│   ├── pauses_router.py
+│   ├── addon_orders_router.py
+│   ├── meal_planner_router.py
+│   ├── deliveries_router.py
+│   ├── payments_router.py
+│   ├── complaints_router.py
+│   └── reports_router.py
 ├── models/
-
-├── schemas/
-
+│   ├── user.py
+│   ├── customer.py
+│   ├── delivery_boy.py
+│   ├── plan.py
+│   ├── subscription.py
+│   ├── pause.py
+│   ├── addon_order.py
+│   ├── route.py
+│   ├── delivery.py
+│   ├── payment.py
+│   ├── invoice.py
+│   ├── complaint.py
+│   └── notification.py
 ├── services/
-
+│   ├── meal_planner_service.py
+│   ├── subscription_service.py
+│   ├── billing_service.py
+│   └── complaint_service.py
 ├── uploads/
-
 ├── reports/
-
 └── tests/
+
 
 ---
 
@@ -324,120 +292,116 @@ app/
 
 ## main.py
 
-Purpose:
+Application entry point
 
-Application entry point.
+Initializes FastAPI app
 
-Functions:
+Registers routers from routers/
 
-create_app() -> FastAPI
-
----
-
-## api/meal_planner.py
-
-Purpose:
-
-Generate daily cooking requirements.
-
-Endpoints:
-
-GET /meal-plan/today
-
-Returns:
-
-Total tiffins grouped by diet type.
+Configures middleware and exception handlers
 
 ## core/config.py
 
-Purpose:
+Centralized configuration
 
-Application configuration.
-
-Class:
-
-Settings
-
-Fields:
-
-JWT_SECRET: str
-
-DATABASE_PATH: str
-
-SMTP_EMAIL: str
-
-SMTP_PASSWORD: str
-
----
+Settings class with JWT secret, DB path, SMTP credentials
 
 ## core/database.py
 
-Purpose:
+SQLModel session handling
 
-Database connection handling.
-
-Functions:
-
-get_connection() -> sqlite3.Connection
-
-close_connection() -> None
-
----
+Functions: get_session(), close_session()
 
 ## core/security.py
 
-Purpose:
+Password hashing and verification
 
-Authentication utilities.
+JWT creation and decoding
 
-Functions:
-
-hash_password(password: str) -> str
-
-verify_password(password: str, hash: str) -> bool
-
-create_token(user_id: int, role: str) -> str
-
-decode_token(token: str) -> dict
-
-JWT Payload:
-{"user_id" : int, "role" : str}
-
----
+Role-based access utilities
 
 ## core/constants.py
 
-Purpose:
+System constants: SLA hours, addon cutoff, pause cap
 
-System constants.
+## api/ (Business Logic Endpoints)
 
-Variables:
+* customers.py: CRUD for customers, document upload, route assignment
 
-LOW_SLA_HOURS = 48
+* plans.py: Manage plans (create, update, list)
 
-MEDIUM_SLA_HOURS = 24
+* subscriptions.py: Create, renew, change subscriptions
 
-HIGH_SLA_HOURS = 6
+* pauses.py: Pause requests, approvals, history retrieval
+             Responsibility: mention enforcement of 7‑day cap.
 
-ADDON_CUTOFF_HOUR = 9
+* addon_orders.py: Place add-on orders, enforce cutoff
 
----
+* meal_planner.py:Generate daily meal counts grouped by diet type and meal type (Lunch/Dinner).
 
-## services/meal_planner_service.py
+* deliveries.py: Update delivery status, retry failed deliveries
 
-Functions:
+* payments.py: Record payments, apply discounts, manage khaata
 
-generate_daily_meal_plan(target_date: date) -> dict
+* complaints.py: Log complaints, SLA monitoring, overdue detection
 
-Output:
+* reports.py: Dashboard summaries, monthly PDF reports
 
-{
-  "veg": int,
-  "non_veg": int,
-  "jain": int,
-  "diabetic": int,
-  "total": int
-}
+## routers/ (FastAPI Routers)
+
+Each file registers endpoints from api/ into FastAPI app
+
+Example: customers_router.py imports api/customers.py and registers routes under /customers
+
+## models/ (SQLModel Classes)
+
+* user.py: User authentication and roles
+
+* customer.py: Customer details, linked to User
+
+* delivery_boy.py: Delivery boy info, linked to User
+
+* plan.py: Plan definitions with pricing and billing cycle
+
+* subscription.py: Subscription details, snapshot pricing, auto-pause flag
+
+* pause.py: Pause history, linked to subscription
+
+* addon_order.py: Add-on orders with cutoff enforcement
+
+* route.py: Delivery routes and status
+
+* delivery.py: Delivery records with meal type (Lunch/Dinner)
+
+* payment.py: Payment records with mode and reference
+
+* invoice.py: Invoice details with due date and status
+
+* complaint.py: Complaint records with SLA and resolution
+
+* notification.py: Payment reminders and other notifications
+
+## services/ (Business Rules)
+
+* meal_planner_service.py: Generate meal counts by diet type and meal type
+
+* subscription_service.py: Enforce 7-day pause cap, auto-pause overdue subscriptions
+
+* billing_service.py: Invoice generation, payment reminders 5 days before due date
+
+* complaint_service.py: SLA monitoring, overdue detection, compensation tracking
+
+## uploads/
+
+Stores customer documents (Aadhaar, license)
+
+## reports/
+
+Stores generated PDF reports
+
+## tests/
+
+Unit and integration tests for all modules
 
 # 5. DATABASE MODELS
 
@@ -500,7 +464,7 @@ address: str
 
 route_id: int
 
-diet_type: str
+diet_type: DietType
 
 status: str
 
@@ -556,7 +520,7 @@ name: str
 
 price_paise: int
 
-billing_cycle: str
+billing_cycle: BillingCycle
 
 portion_size: str
 
@@ -583,6 +547,8 @@ start_date: date
 end_date: date
 
 status: str
+
+auto_paused_due_to_dues: bool.
 
 created_at: datetime
 
@@ -622,7 +588,7 @@ customer_id: int
 
 delivery_date: date
 
-addon_type: str
+addon_type: AddonType
 
 quantity: int
 
@@ -668,7 +634,9 @@ route_id: int
 
 delivery_date: date
 
-status: str
+meal_type: str (enum: LUNCH, DINNER)
+
+status: DeliveryStatus
 
 failure_reason: str
 
@@ -688,7 +656,7 @@ customer_id: int
 
 amount_paise: int
 
-payment_mode: str
+payment_mode: PaymentMode
 
 reference_number: str
 
@@ -728,7 +696,7 @@ title: str
 
 description: str
 
-severity: str
+severity: ComplaintSeverity
 
 sla_hours: int
 
@@ -736,9 +704,12 @@ due_at: datetime
 
 resolved_at: datetime
 
-status: str
+status: ComplaintStatus
 
 resolution_note: str
+
+## Notification : 
+id , customer_id, type , message, scheduled_at, status
 
 ---
 
@@ -782,6 +753,12 @@ Deliveries remain visible to admin during transition.
 
 ---
 
+## “Pause requests exceeding 7 days per billing cycle are rejected.”
+
+## “Subscriptions auto‑paused if dues >10 days overdue.”
+
+## “Payment reminders generated 5 days before due date, persisted in Notification table.”
+
 # 7. COMPLAINT SLA RULES
 
 LOW = 48 hours
@@ -818,9 +795,11 @@ PUT /customers/{id}
 
 POST /subscriptions
 
-POST /subscriptions/pause
+POST /subscriptions/pause (enforces 7-day cap)
 
 GET /subscriptions/{id}
+
+GET /subscriptions/{id}/pauses (pause history)
 
 POST /addon-orders
 
@@ -830,6 +809,8 @@ PATCH /deliveries/{id}/status
 
 POST /payments
 
+POST /payments/reminders/run → generates reminders 5 days before due date.
+
 POST /complaints
 
 GET /complaints/{id}
@@ -838,7 +819,7 @@ GET /dashboard
 
 GET /reports/monthly
 
-GET /meal-plan/today
+GET /meal-plan/today (Lunch + Dinner counts)
 
 ---
 
@@ -850,13 +831,13 @@ GET /meal-plan/today
 
 3. POST /subscriptions stores price_snapshot_paise.
 
-4. POST /subscriptions/pause creates pause record.
+4. POST /subscriptions/pause creates pause record and enforces 7‑day cap.
 
 5. GET pause history returns pause dates.
 
 6. POST /addon-orders rejects requests after 09:00 AM.
 
-7. GET /meal-plan/today returns exact cooking quantities grouped by diet type and total tiffins.
+7. GET /meal-plan/today returns exact cooking quantities grouped by diet type and meal type.
 
 8. Delivery status can be updated.
 
@@ -873,6 +854,10 @@ GET /meal-plan/today
 14. Monthly report API generates summary report.
 
 15. All endpoints return valid JSON and HTTP status codes.
+
+16. Subscriptions auto‑paused if dues >10 days late.
+
+17. Payment reminders generated 5 days before due date.
 
 ---
 
