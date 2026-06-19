@@ -464,7 +464,7 @@ address: str
 
 route_id: int
 
-diet_type: DietType
+diet_type: DietType (VEG | NON_VEG | JAIN | DIABETIC)
 
 status: str
 
@@ -520,7 +520,7 @@ name: str
 
 price_paise: int
 
-billing_cycle: BillingCycle
+billing_cycle: BillingCycle (MONTHLY | WEEKLY)
 
 portion_size: str
 
@@ -548,7 +548,7 @@ end_date: date
 
 status: str
 
-auto_paused_due_to_dues: bool.
+auto_paused_due_to_dues: bool
 
 created_at: datetime
 
@@ -588,7 +588,7 @@ customer_id: int
 
 delivery_date: date
 
-addon_type: AddonType
+addon_type: AddonType (PANEER | RAITA | SALAD | KHEER)
 
 quantity: int
 
@@ -634,9 +634,9 @@ route_id: int
 
 delivery_date: date
 
-meal_type: str (enum: LUNCH, DINNER)
+meal_type: MealType (LUNCH | DINNER)
 
-status: DeliveryStatus
+status: DeliveryStatus (PREPARED | OUT_FOR_DELIVERY | DELIVERED | FAILED | RETRY_SCHEDULED | MISSED)
 
 failure_reason: str
 
@@ -656,7 +656,7 @@ customer_id: int
 
 amount_paise: int
 
-payment_mode: PaymentMode
+payment_mode: PaymentMode (CASH | UPI | KHAATA)
 
 reference_number: str
 
@@ -696,7 +696,7 @@ title: str
 
 description: str
 
-severity: ComplaintSeverity
+severity: ComplaintSeverity (LOW | MEDIUM | HIGH)
 
 sla_hours: int
 
@@ -704,7 +704,7 @@ due_at: datetime
 
 resolved_at: datetime
 
-status: ComplaintStatus
+status: ComplaintStatus (OPEN | IN_PROGRESS | RESOLVED)
 
 resolution_note: str
 
