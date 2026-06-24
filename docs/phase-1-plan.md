@@ -155,6 +155,12 @@ app/
 
 │   └── auth.py
 
+├── services/
+│
+│   ├── auth_service.py
+│
+│   └── plan_service.py
+
 └── scripts/
 
     └── create_admin.py
@@ -396,8 +402,71 @@ Rules:
 
 ---
 
+## Services Layer
+
+Purpose:
+
+Contains business logic.
+
+Responsibilities:
+
+- Validation
+- Authorization decisions
+- Business rules
+- Reusable operations
+
+Routers should only:
+
+- Accept requests
+- Call services
+- Return responses
+
+Future Examples:
+
+pause_service.py
+
+billing_service.py
+
+delivery_service.py
 
 # 6. DATABASE MODELS
+
+# 6. DATABASE MODELS
+
+## UserRole Enum
+
+Purpose:
+
+Defines allowed user roles in the system.
+
+Allowed Values:
+
+ADMIN
+
+DELIVERY_BOY
+
+CUSTOMER
+
+Validation Rules:
+
+Only enum values may be stored.
+
+Examples Rejected:
+
+admin
+
+Admin
+
+customer
+
+manager
+
+Reason:
+
+Prevents invalid role values from being saved and ensures
+authorization checks behave consistently.
+
+---
 
 ## User
 
@@ -415,7 +484,7 @@ phone: str
 
 password_hash: str
 
-role: str
+role: UserRole   
 
 is_active: bool
 
@@ -463,6 +532,41 @@ Billing Cycle Values:
 WEEKLY
 
 MONTHLY
+
+---
+
+## Money Representation
+
+Decision:
+
+All monetary values are stored as paise integers.
+
+Examples:
+
+₹2800.00
+
+Stored As:
+
+280000
+
+Reason:
+
+- Avoid floating-point precision issues
+- No fractional paise exists in Indian currency
+- Discount calculations are rounded once
+  during invoice generation
+
+Affected Fields:
+
+price_paise
+
+food_cost_per_day_paise
+
+amount_paise
+
+discount_paise
+
+final_amount_paise\
 
 ---
 
@@ -527,6 +631,34 @@ food_cost_per_day_paise: int
 active: bool
 
 ---
+
+## UserResponse
+
+Purpose:
+
+Safe user response returned to clients.
+
+Fields:
+
+id: int
+
+username: str
+
+phone: str
+
+role: str
+
+is_active: bool
+
+created_at: datetime
+
+Excluded Fields:
+
+password_hash
+
+Reason:
+
+Passwords must never be returned in API responses.
 
 # 8. AUTHENTICATION FLOW
 
@@ -602,6 +734,10 @@ Dependency:
 
 get_current_admin()
 
+Checks:
+
+current_user.role == UserRole.ADMIN
+
 Purpose:
 
 Ensure role == ADMIN
@@ -634,11 +770,19 @@ Response:
   "status": "ok"
 }
 
+Success Status:
+
+200 OK
+
 ---
 
 ## Register User
 
 POST /auth/register
+
+Success Response:
+
+UserResponse
 
 Purpose:
 
@@ -647,6 +791,10 @@ Create user account
 Authentication:
 
 Not Required
+
+Success Status:
+
+201 Created
 
 ---
 
@@ -662,6 +810,10 @@ Authentication:
 
 Not Required
 
+Success Status:
+
+200 OK
+
 ---
 
 ## Get Plans
@@ -675,6 +827,10 @@ Retrieve plans
 Authentication:
 
 Required
+
+Success Status:
+
+200 OK
 
 ---
 
@@ -693,6 +849,10 @@ Required
 Authorization:
 
 ADMIN only
+
+Success Status:
+
+201 Created
 
 ---
 
@@ -777,3 +937,9 @@ Phase 1 is complete when:
 14. API documentation available at /docs.
 
 15. All endpoints return valid HTTP status codes.
+
+16. UserResponse never exposes password_hash.
+
+17. User.role validation accepts only UserRole enum values.
+
+18. All API success responses return documented HTTP status codes.
