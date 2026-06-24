@@ -1,4 +1,5 @@
 from datetime import datetime
+from app.models.enums import UserRole
 
 from sqlmodel import SQLModel, Field
 
@@ -14,7 +15,7 @@ class User(SQLModel, table=True):
 
     password_hash: str
 
-    role: str
+    role: UserRole = UserRole.CUSTOMER
 
     is_active: bool = True
 

@@ -13,6 +13,9 @@ pwd_context = CryptContext(
 
 
 def hash_password(password: str) -> str:
+    """
+    Hash plain text password.
+    """
     return pwd_context.hash(password)
 
 
@@ -20,6 +23,9 @@ def verify_password(
     plain_password: str,
     hashed_password: str
 ) -> bool:
+    """
+    Verify plain password against hash.
+    """
     return pwd_context.verify(
         plain_password,
         hashed_password
@@ -30,6 +36,10 @@ def create_access_token(
     user_id: int,
     role: str
 ) -> str:
+    """
+    Generate JWT access token.
+    """
+
     expire = datetime.now(
         timezone.utc
     ) + timedelta(
@@ -52,8 +62,14 @@ def create_access_token(
 def decode_access_token(
     token: str
 ) -> dict:
+    """
+    Decode JWT access token.
+    """
+
     return jwt.decode(
         token,
         settings.JWT_SECRET_KEY,
-        algorithms=[settings.JWT_ALGORITHM]
+        algorithms=[
+            settings.JWT_ALGORITHM
+        ]
     )
