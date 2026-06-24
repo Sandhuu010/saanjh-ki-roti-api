@@ -216,3 +216,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+## .gitignore
+
+Purpose:
+
+Prevent sensitive/generated files from being committed.
+
+Contents:
+
+*.db
+.env
+__pycache__/
+*.pyc
+venv/
+.venv/
