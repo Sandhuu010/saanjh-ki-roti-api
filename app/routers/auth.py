@@ -49,7 +49,7 @@ def register(
 
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_BAD_REQUEST,
             detail="Username already exists"
         )
 
@@ -61,7 +61,7 @@ def register(
 
     if existing_phone:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_BAD_REQUEST,
             detail="Phone number already exists"
         )
 

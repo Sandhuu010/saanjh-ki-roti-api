@@ -14,4 +14,6 @@ pydantic-settings
 reportlab
 
 pytest
+pytest-cov
 httpx
+

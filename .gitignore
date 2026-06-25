@@ -231,3 +231,31 @@ __pycache__/
 # venv
 venv/
 .venv/
+
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Env
+venv/
+
+# Environment
+.env
+
+# SQLite
+*.db
+
+# Reports
+reports/
+
+# Uploads
+uploads/
+
+# IDE
+.vscode/
+.idea/
+
+.pytest_cache/
+.coverage
+htmlcov/
