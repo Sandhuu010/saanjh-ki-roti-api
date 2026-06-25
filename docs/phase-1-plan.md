@@ -525,6 +525,18 @@ portion_size: str
 
 food_cost_per_day_paise: int
 
+supports_veg: bool
+
+supports_non_veg: bool
+
+supports_jain: bool
+
+supports_diabetic: bool
+
+includes_lunch: bool
+
+includes_dinner: bool
+
 active: bool
 
 Billing Cycle Values:
@@ -532,6 +544,29 @@ Billing Cycle Values:
 WEEKLY
 
 MONTHLY
+
+Purpose:
+
+Defines available subscription plans.
+
+Examples:
+
+Monthly Veg:
+supports_veg = true
+includes_lunch = true
+includes_dinner = false
+
+Monthly Premium:
+supports_veg = true
+supports_non_veg = true
+supports_jain = true
+includes_lunch = true
+includes_dinner = true
+
+Diabetic Special:
+supports_diabetic = true
+includes_lunch = true
+includes_dinner = true
 
 ---
 
@@ -858,33 +893,87 @@ Success Status:
 
 # 11. ERROR HANDLING
 
-400
+## Duplicate Username
 
-Validation error
+Status Code:
 
----
+409 Conflict
 
-401
+Response:
 
-Authentication failed
-
----
-
-403
-
-Authorization failed
+{
+  "detail": "Username already exists"
+}
 
 ---
 
-404
+## Duplicate Phone Number
 
-Resource not found
+Status Code:
+
+409 Conflict
+
+Response:
+
+{
+  "detail": "Phone number already exists"
+}
 
 ---
 
-500
+## Invalid Login
 
-Server error
+Status Code:
+
+401 Unauthorized
+
+Response:
+
+{
+  "detail": "Invalid username or password"
+}
+
+---
+
+## Missing Token
+
+Status Code:
+
+401 Unauthorized
+
+Response:
+
+{
+  "detail": "Not authenticated"
+}
+
+---
+
+## Non-Admin Plan Creation
+
+Status Code:
+
+403 Forbidden
+
+Response:
+
+{
+  "detail": "Admin access required"
+}
+
+---
+
+## Invalid Plan Data
+
+Status Code:
+
+422 Unprocessable Entity
+
+Response:
+
+{
+  "detail": "Validation Error"
+}
 
 ---
 
@@ -943,3 +1032,96 @@ Phase 1 is complete when:
 17. User.role validation accepts only UserRole enum values.
 
 18. All API success responses return documented HTTP status codes.
+
+
+---
+
+## Required Automated Tests
+
+test_register_user_success
+
+Purpose:
+Verify customer registration succeeds.
+
+Expected:
+201 Created
+
+---
+
+test_register_duplicate_username
+
+Purpose:
+Verify duplicate username is rejected.
+
+Expected:
+409 Conflict
+
+---
+
+test_register_duplicate_phone
+
+Purpose:
+Verify duplicate phone number is rejected.
+
+Expected:
+409 Conflict
+
+---
+
+test_login_success
+
+Purpose:
+Verify valid credentials return JWT token.
+
+Expected:
+200 OK
+
+---
+
+test_login_invalid_credentials
+
+Purpose:
+Verify invalid credentials are rejected.
+
+Expected:
+401 Unauthorized
+
+---
+
+test_get_plans_authenticated
+
+Purpose:
+Verify authenticated users can view plans.
+
+Expected:
+200 OK
+
+---
+
+test_get_plans_unauthenticated
+
+Purpose:
+Verify token is required.
+
+Expected:
+401 Unauthorized
+
+---
+
+test_create_plan_admin
+
+Purpose:
+Verify admin can create plans.
+
+Expected:
+201 Created
+
+---
+
+test_create_plan_customer_forbidden
+
+Purpose:
+Verify customer cannot create plans.
+
+Expected:
+403 Forbidden
